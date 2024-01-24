@@ -13,9 +13,8 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/myapp.conf
       - tmp-d:/usr/src/app/tmp
   db: 
-    container_name: postgres
+    container_name: postgres_db
     image: postgres:16.0
-    env_file: .env.vertification
     ports: 
       - "5432:5432"
     volumes: 
