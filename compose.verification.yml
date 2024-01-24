@@ -29,7 +29,6 @@ services:
     build: 
       context: ./rails
       dockerfile: ./Dockerfile.verification
-    #command: bash -c "rm -f tmp/pids/server.pid && tail -f log/development.log"
     command: bash -c "rails s -b '0.0.0.0'"
     volumes:
       - ./rails:/usr/src/app
