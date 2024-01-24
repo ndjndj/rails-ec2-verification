@@ -45,7 +45,7 @@ RailsApp の検証用サーバーを EC2 で作成するためのテンプレー
         1. 以下のコマンドを実行する
 
         ```bash
-        docker compose -f compose.verification.yml run --rm rails rails new . --skip --database=postgresql --api --skip-bundle
+        docker compose run --rm rails rails new . --skip --database=postgresql --api --skip-bundle
         ```
 
         2. /rails 直下で作成される .git フォルダを削除しておく
