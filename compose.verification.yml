@@ -21,10 +21,10 @@ services:
     volumes: 
       - pg-data:/var/lib/postgresql/data
     environment: 
-      - POSTGRES_DATABASE=pecolith 
-      - POSTGRES_USER=pecolith 
-      - POSTGRES_PASSWORD=0d14e1941806f593 
-      - POSTGRES_ROOT_PASSWORD=0d14e1941806f593 
+      - POSTGRES_DATABASE=postgres
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_ROOT_PASSWORD=password
   rails: 
     build: 
       context: ./rails
