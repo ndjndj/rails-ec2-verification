@@ -54,29 +54,30 @@ RailsApp の検証用サーバーを EC2 で作成するためのテンプレー
 
         1. 以下のコマンドを実行する
 
-        ```bash
-        docker compose run --rm rails rails new . --skip --database=postgresql --api --skip-bundle
-        ```
+            ```bash
+            docker compose run --rm rails rails new . --skip --database=postgresql --api --skip-bundle
+            ```
 
         2. /rails/.git は削除しておく
 
 1. ( Local ) puma.rb の設定
-既に用意されている nginx と通信するために設定を変更していく。  
-_rails/config/puma.rb を参考に、config/puma.rb を書き換える。  
-ポイントは、Port を閉じることと、Nginx の設定を bind させること
+    既に用意されている nginx と通信するために設定を変更していく。  
+
+    _rails/config/puma.rb を参考に、config/puma.rb を書き換える。  
+    ポイントは、Port を閉じることと、Nginx の設定を bind させること
 
 
 2. ( Local ) DockerImage の build
 
 
-```
-docker compose -f compose.verification.yml build --no-cache
-```
+    ```bash
+    docker compose -f compose.verification.yml build --no-cache
+    ```
 
 3. ( Local ) 試しに up もしてみる
 
-```
-docker compose -f compose.verification.yml up
-```
+    ```bash
+    docker compose -f compose.verification.yml up
+    ```
 
  
