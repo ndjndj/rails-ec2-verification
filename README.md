@@ -63,6 +63,8 @@ RailsApp の検証用サーバーを EC2 で作成するためのテンプレー
 ### 1. EC2 インスタンスを起動しておく
 
 使用したインスタンスに関する情報は下記のとおりです。  
+nginx + Ruby on Rails + Postgresql なら t2.micro で十分でしたが、ここは適宜変更してください。  
+ストレージに関しても、イメージサイズに応じて変更してください。  
 
 |name|value|
 |-|-|
@@ -127,17 +129,23 @@ sudo usermod -aG docker $USER
     ```
 
  4. EC2 に送るように DockerImage を tar ファイルに圧縮する
-
+    ```
+    docker tartar
+    ```
     この方法を使わない場合は、次の「5. EC2 に DockerImage を送信する」をスキップしてください。  
     EC2 の中で build をしてもいいのですが、gem のサイズによっては bundle install をしているときにマシンの CPU リソースが枯渇してしまう場合があります。  
     なので、転送に時間がかかってしまいますが、DockerImage はローカルで作ってしまうこちらの方法の方が確実です。  
 
-5. EC2 に DockerImage を送信する
 
-6. compose.verification.yml の build 対象を変更する
+5. compose.verification.yml の build 対象を変更する
     
     下記のように、DockerImage から build するように設定を変更します。  
     rails コンテナが肥大するので、rails だけ指定しています。  
+
+    Rails App のコンテナ ID を調べます。  
+    ```
+    docker images
+    ```
 
     ```yaml
     version: '3'
@@ -163,3 +171,27 @@ sudo usermod -aG docker $USER
       bin: 
         driver: local
     ```
+6. EC2 に DockerImage を送信する
+
+7. EC2 に RailsApp を送信する
+```
+tar した方がいい
+```
+
+
+### 3. EC2 で DockerImage からコンテナ群を立ち上げる
+
+1. DockerImage をロード
+
+2. Rails App を解凍
+
+3. Docker up
+
+### 4. 動作確認
+
+IP にアクセス
+Rails の画面が表示されたらOK
+
+### 5. インスタンスを開始したとき、自動的にコンテナ群が立ち上がるようにする
+
+
