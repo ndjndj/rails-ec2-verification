@@ -41,11 +41,14 @@ RailsApp の検証用サーバーを EC2 で作成するためのテンプレー
     
     - このリポジトリをテンプレートとして新しいリポジトリを作り、既存の Rails App をコピーしてくる
 
-        - Dockerfile.verification
+        このパターンの場合、以下の作業が必要
 
-        - このパターンの場合、Gemfile などの Rails 系のファイルは不要です
-
-            - ただし、既存ファイルの書き換えが必要な場合があります。
+        - 下記ファイルの書き換え
+            1. rails/config/puma.rb 
+        - YourRailsApp/ に下記ファイルを _rails/ からコピーしてくる
+            1. _rails/Dockerfile.verification 
+            2. _rails/entrypoint.verification.sh 
+        - compose.verification.yml を適宜書き換える
 
     - このリポジトリをテンプレートとして新しいリポジトリを作り、新規 Rails App の開発を開始する
 
@@ -55,14 +58,16 @@ RailsApp の検証用サーバーを EC2 で作成するためのテンプレー
         docker compose run --rm rails rails new . --skip --database=postgresql --api --skip-bundle
         ```
 
-        2. /rails 直下で作成される .git フォルダを削除しておく
+        2. /rails/.git は削除しておく
 
 
-- 
+1. ( Local ) DockerImage の build
+
 
 ```
-
+docker compose -f compose.verification.yml build --no-cache
 ```
+
 
 - 
 ```
