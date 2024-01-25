@@ -1,0 +1,5 @@
+rails/*
+!rails/Dockerfile*
+!rails/entrypoint*
+!rails/Gemfile 
+!rails/Gemfile.lock
