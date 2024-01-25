@@ -60,23 +60,23 @@ RailsApp の検証用サーバーを EC2 で作成するためのテンプレー
 
         2. /rails/.git は削除しておく
 
+1. ( Local ) puma.rb の設定
+既に用意されている nginx と通信するために設定を変更していく。  
+_rails/config/puma.rb を参考に、config/puma.rb を書き換える。  
+ポイントは、Port を閉じることと、Nginx の設定を bind させること
 
-1. ( Local ) DockerImage の build
+
+2. ( Local ) DockerImage の build
 
 
 ```
 docker compose -f compose.verification.yml build --no-cache
 ```
 
-
-- 
-```
+3. ( Local ) 試しに up もしてみる
 
 ```
-
-- 
-
+docker compose -f compose.verification.yml up
 ```
 
-```
  
