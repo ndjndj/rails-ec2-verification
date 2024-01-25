@@ -25,6 +25,7 @@ services:
       - POSTGRES_PASSWORD=password 
       - POSTGRES_ROOT_PASSWORD=root
   rails: 
+    #image: xxxxx
     build: 
       context: ./rails
       dockerfile: ./Dockerfile.verification
