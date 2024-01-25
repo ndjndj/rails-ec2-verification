@@ -1,9 +1,14 @@
 # rails-ec2-verification
 RailsApp の検証用サーバーを EC2 で作成するためのテンプレートです  
 
+## はじめに
+
+- ベーシックな Nginx + Ruby on Rails + Postgresql の環境を、1台の EC2 上に構築するためのテンプレートです。  
+- DynamoDB local などのその他の環境も加えて構築したい場合は、適宜カスタマイズしてください。
+
 ## 用途
 
-- 開発した API をクライアントから
+- 検証用のプロトタイプを公開したいとき
 
 ## 流れ
 
@@ -35,6 +40,8 @@ RailsApp の検証用サーバーを EC2 で作成するためのテンプレー
     以下のような操作で /rails 直下に RailsApp のソースコード群を設置する。
     
     - このリポジトリをテンプレートとして新しいリポジトリを作り、既存の Rails App をコピーしてくる
+
+        - Dockerfile.verification
 
         - このパターンの場合、Gemfile などの Rails 系のファイルは不要です
 
