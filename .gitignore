@@ -1,3 +1,4 @@
+# Delete when using as a template repository
 rails/*
 !rails/Dockerfile*
 !rails/entrypoint*
