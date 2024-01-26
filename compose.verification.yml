@@ -5,6 +5,7 @@ services:
     #build: 
     #  context: ./nginx/
     #  dockerfile: ./Dockerfile.verification
+    restart: always
     depends_on:
       - rails
     ports:
@@ -16,6 +17,7 @@ services:
   db: 
     container_name: postgres_db
     image: postgres:16.0
+    restart: always
     ports: 
       - "5432:5432"
     volumes: 
@@ -30,6 +32,7 @@ services:
     #build: 
     #  context: ./rails
     #  dockerfile: ./Dockerfile.verification
+    restart: always
     command: bash -c "rails s -b '0.0.0.0'"
     volumes:
       - ./rails:/usr/src/app
