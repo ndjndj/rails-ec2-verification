@@ -1,22 +1,17 @@
-# rails-ec2-verification
+# はじめに
 RailsApp の検証用サーバーを EC2 で作成するためのテンプレートです  
-
-## はじめに
 
 - ベーシックな Nginx + Ruby on Rails + Postgresql の環境を、1台の EC2 上に構築するためのテンプレートです。  
 - DynamoDB local などのその他の環境も加えて構築したい場合は、適宜カスタマイズしてください。
 
-## 用途
+# 用途
 
 - 検証用のプロトタイプを公開したいとき
 
-## 流れ
+# 流れ
 
 
-
-## 使い方
-
-### 0. 必要なファイル群を用意する  
+# 0. 必要なファイル群を用意する  
 
 以下のようなディレクトリ構造にする必要があります。
 
@@ -60,10 +55,10 @@ RailsApp の検証用サーバーを EC2 で作成するためのテンプレー
 
     2. /rails/.git は削除しておく
 
-### 1. EC2 インスタンスを起動しておく
+# 1. EC2 インスタンスの準備
 
 使用したインスタンスに関する情報は下記のとおりです。  
-nginx + Ruby on Rails + Postgresql なら t2.micro で十分でしたが、ここは適宜変更してください。  
+検証したところ、nginx + Ruby on Rails + Postgresql なら t2.micro で十分でしたが、ここは適宜変更してください。  
 ストレージに関しても、イメージサイズに応じて変更してください。  
 セキュリティグループは、インバウンドの SSH と HTTP を許可する設定にしてください。
 
@@ -73,9 +68,9 @@ nginx + Ruby on Rails + Postgresql なら t2.micro で十分でしたが、こ�
 |AMI|Ubuntu|
 |ストレージ|20GB|
 
-1. Docker CE をインストールする
+## 1-1. Docker CE をインストールする
 
-SSH クライアントを使用するなりして、下記のように EC2 インスタンスに、 Docker CE をインストールします。  
+SSH クライアントを使用するなりして、EC2 インスタンスに Docker CE をインストールします。  
 
 ```bash
 # 古いパッケージの削除
@@ -108,113 +103,120 @@ sudo groupadd docker
 sudo usermod -aG docker $USER
 ```
 
-### 2. EC2 で動かすためにローカルで行う作業
+# 2. EC2 で動かすためにローカルで行う作業
 
-1. ruby file の書き換え
-    既に用意されている nginx と通信するために設定を変更していく。  
+## 2-1. ruby file の書き換え
+既に用意されている nginx と通信するために設定を変更していく。  
 
-    _rails/config/puma.rb を参考に、config/puma.rb を書き換える。  
-    ポイントは、Port の設定を無効にすることと、nginx の設定を bind させること  
+_rails/config/puma.rb を参考に、config/puma.rb を書き換える。  
+ポイントは、Port の設定を無効にすることと、nginx の設定を bind させること  
 
-    ```rb
-    # config/puma.rb
-    # port 設定を無効にする
-    # port ENV.fetch("PORT") { 3000 }
+```rb
+# config/puma.rb
+# port 設定を無効にする
+# port ENV.fetch("PORT") { 3000 }
 
-    # -------------中略-------------
+# -------------中略-------------
 
-    # nginx の設定を bind させる
-    app_root = File.expand_path("..", __dir__)
-    bind "unix://#{app_root}/tmp/sockets/puma.sock"
-    ```
+# nginx の設定を bind させる
+app_root = File.expand_path("..", __dir__)
+bind "unix://#{app_root}/tmp/sockets/puma.sock"
+```
 
-    また、ホストの許可設定も追加する
-    ```rb 
-    # confg/environments/development.rb 
+また、ホストの許可設定も追加する
+```rb 
+# confg/environments/development.rb 
 
-    # -------------中略-------------
-    config.hosts << "<ec2 パブリック IPv4 DNS>"
-    ```
-
-
-2. DockerImage の build
+# -------------中略-------------
+config.hosts << "<ec2 パブリック IPv4 DNS>"
+```
 
 
-    ```bash
-    docker compose -f compose.verification.yml build --no-cache
-    ```
+## 2-2. DockerImage の build
 
-3. 試しに up もしてみる
+```bash
+docker compose -f compose.verification.yml build --no-cache
+```
 
-    ```bash
-    docker compose -f compose.verification.yml up
-    ```
+## 2-3. 試しに up もしてみる
 
-4. EC2 に送るソース一式を圧縮する
-    任意のディレクトリの圧縮ファイルを作成します。  
-    このファイルを EC2 に送信、EC2 で解凍します。  
-    今回は、rails-ec2-verification/ でリポジトリごと圧縮しています。
+```bash
+docker compose -f compose.verification.yml up
+```
 
-    ```bash
-    tar zcvf app.tar.gz ./
-    ```
+## 2-4. EC2 に送るソース一式を圧縮する
 
-5. EC2 に送るように DockerImage を tar ファイルに変換する
-    nginx, Postgresql, rails の DockerImage を tar 形式で save します。  
-    その後、EC2 に転送するために gzip 形式での圧縮も行います。
+任意のディレクトリの圧縮ファイルを作成します。  
+このファイルを EC2 に送信し、解凍します。  
+今回は、rails-ec2-verification/ でリポジトリごと圧縮しています。
 
-    ```
-    # 対象の DockerImage の ImageID を特定する
-    docker images 
+```bash
+tar zcvf app.tar.gz ./
+```
+
+## 2-5. EC2 に送るように DockerImage を tar ファイルに変換する
+
+nginx, Postgresql, rails の DockerImage を tar 形式で save します。  
+その後、EC2 に転送するために gzip 形式での圧縮も行います。
+
+```
+# 対象の DockerImage の ImageID を特定する
+docker images 
+
+# アーカイブ
+mkdir docker-images 
+cd docker-images 
+docker save <nginx image ID> > nginx.tar
+docker save <postgresql image ID> > postgres.tar
+docker save <rails image ID> > rails.tar
+
+# 圧縮
+tar zcvf docker-images.tar.gz ./
+```
+
+この方法を使わない場合は、「3-2. Rails App を解凍」までスキップしてください。  
+ただ、EC2 の中で build をしてもいいのですが、gem のサイズによっては bundle install をしているときにマシンの CPU リソースが枯渇してしまう場合があります。  
+なので、転送に時間がかかってしまいますが、DockerImage はローカルで作ってしまうこちらの方法の方がおすすめです。  
+
+
+## 2-6. compose.verification.yml の build 対象を変更する
     
-    mkdir docker-images 
-    cd docker-images 
-    docker save <nginx image ID> > nginx.tar
-    docker save <postgresql image ID> > postgres.tar
-    docker save <rails image ID> > rails.tar
+下記のように、DockerImage から build するように設定を変更します。  
 
-    tar zcvf docker-images.tar.gz ./
-    ```
-    この方法を使わない場合は、次の「5. EC2 に DockerImage を送信する」をスキップしてください。  
-    EC2 の中で build をしてもいいのですが、gem のサイズによっては bundle install をしているときにマシンの CPU リソースが枯渇してしまう場合があります。  
-    なので、転送に時間がかかってしまいますが、DockerImage はローカルで作ってしまうこちらの方法の方が確実です。  
+```bash
+docker images
+```
 
+compose.verification.yml の設定を変更します。
 
-6. compose.verification.yml の build 対象を変更する
-    
-    下記のように、DockerImage から build するように設定を変更します。  
-    rails コンテナが肥大するので、rails だけ指定しています。  
+```yaml
+version: '3'
+services: 
+    web: 
+    db:
+    rails: 
+    image: <image ID or repository:tag>
+    # image: xxxxxxxxxxx ID 
+    # image: raisl-ec2-verificaiton-rails:latest 
+    #build: 
+    #  context: ./rails
+    #  dockerfile: ./Dockerfile.verification
+    command: bash -c "rails s -b '0.0.0.0'"
+    volumes:
+        - ./rails:/usr/src/app
+        - tmp-d:/usr/src/app/tmp
+    depends_on:
+        - db 
+    tty: true 
+    stdin_open: true
+volumes: 
+    pg-data:
+    tmp-d: 
+    bin: 
+    driver: local
+```
 
-    Rails App のコンテナ ID を調べます。  
-    ```
-    docker images
-    ```
-
-    ```yaml
-    version: '3'
-    services: 
-      web: 
-      db:
-      rails: 
-        image: <ローカルで build した DockerImage の image ID>
-        #build: 
-        #  context: ./rails
-        #  dockerfile: ./Dockerfile.verification
-        command: bash -c "rails s -b '0.0.0.0'"
-        volumes:
-          - ./rails:/usr/src/app
-          - tmp-d:/usr/src/app/tmp
-        depends_on:
-          - db 
-        tty: true 
-        stdin_open: true
-    volumes: 
-      pg-data:
-      tmp-d: 
-      bin: 
-        driver: local
-    ```
-7. EC2 に DockerImage を送信する
+## 2-7. EC2 に DockerImage を送信する
 
 キーペアの指定とパスに注意してください。  
 また WSL などで ホストをマウントしている場合は、permission error が発生することがあると思います。  
@@ -225,18 +227,29 @@ scp -i <pem ファイル> -r ../docker-images.tar.gz ubuntu@<ip>:/home/ubuntu/
 scp -i <pem ファイル> -r ./app.tar.gz ubuntu@<ip>:/home/ubuntu/
 ```
 
-### 3. EC2 で DockerImage からコンテナ群を立ち上げる
+# 3. EC2 で DockerImage からコンテナ群を立ち上げる
 
-1. DockerImage を解凍、ロード
+## 3-1. DockerImage の設定
 
-```
+DockerImage をロードします。  
+また、repository と tag が none になっているので、タグ付けもします。  
+compose.yml で image ID を指定している場合は無視してください。ローカルと同じタグにしてください。
+```bash
+# 解凍
 tar zxvf docker-images.tar.gz
+
+# load 
 docker load < docker-images/nginx.tar
 docker load < docker-images/postgres.tar
 docker load < docker-images/rails.tar
+
+# タグづけ
+docker images 
+docker tag xxxxxxxx rails-ec2-verification-rails:latest
+docker tag xxxxxxxx rails-ec2-verification-web:latest
 ```
 
-2. Rails App を解凍
+## 3-2. Rails App を解凍
 
 ```
 sudo su -
@@ -245,8 +258,12 @@ mv /home/ubuntu/app.tar.gz /usr/src/app.tar.gz
 cd usr/src 
 tar zxvf /usr/src/app.tar.gz
 ```
-3. Docker up
+## 3-3. Docker up
 
-### 4. 動作確認
+```bash
+docker compose -f compose.verification.yml up
+```
+
+# 4. 動作確認
 
 ブラウザで パブリック IPv4 DNS にアクセスして、Rails のいつもの画面が出てくることを確認する。

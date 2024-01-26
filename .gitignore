@@ -4,3 +4,4 @@ rails/*
 !rails/entrypoint*
 !rails/Gemfile 
 !rails/Gemfile.lock
+*.tar.gz
