@@ -148,7 +148,7 @@ sudo usermod -aG docker $USER
     tar zcvf app.tar.gz ./
     ```
 
-5. EC2 に送るように DockerImage を tar ファイルに圧縮する
+5. EC2 に送るように DockerImage を tar ファイルに変換する
     nginx, Postgresql, rails の DockerImage を tar 形式で save します。
 
     ```
@@ -199,6 +199,23 @@ sudo usermod -aG docker $USER
         driver: local
     ```
 7. EC2 に DockerImage を送信する
+
+キーペアの指定とパスに注意してください。  
+また WSL などで ホストをマウントしている場合は、permission error が発生することがあると思います。  
+その場合は、ホスト側から送信する方法や、WSL 側に pem ファイルを移動したうえで権限変更などの方法を試してください。  
+
+```
+scp -i <pem ファイル> -r ../nginx.tar ubuntu@<ip>:/home/ubuntu/
+scp -i <pem ファイル> -r ../postgres.tar ubuntu@<ip>:/home/ubuntu/
+scp -i <pem ファイル> -r ../rails.tar ubuntu@<ip>:/home/ubuntu/
+scp -i <pem ファイル> -r ./app.tar.gz ubuntu@<ip>:/home/ubuntu/
+
+
+scp -i ../rails-ec2-verification.pem -r ../nginx.tar ubuntu@ec2-35-78-189-82.ap-northeast-1.compute.amazonaws.com:/home/ubuntu/
+scp -i ../rails-ec2-verification.pem -r ../postgres.tar ubuntu@ec2-35-78-189-82.ap-northeast-1.compute.amazonaws.com:/home/ubuntu/
+scp -i ../rails-ec2-verification.pem -r ../rails.tar ubuntu@ec2-35-78-189-82.ap-northeast-1.compute.amazonaws.com:/home/ubuntu/
+scp -i ../rails-ec2-verification.pem -r ./app.tar.gz ubuntu@ec2-35-78-189-82.ap-northeast-1.compute.amazonaws.com:/home/ubuntu/
+```
 
 8. EC2 に RailsApp を送信する
 ```
