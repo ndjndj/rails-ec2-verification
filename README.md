@@ -274,5 +274,5 @@ docker compose -f compose.verification.yml up
 # おまけ
 インスタンス開始時に Docker compose up できるようにする。  
 
-1. リポジトリの boot.sh を /var/lib/cloud/scripts/per-boot/ に設置する。
+1. リポジトリの docker-up.sh を /var/lib/cloud/scripts/per-boot/ に設置する。
 2. sudo systemctl enabled docker で docker デーモンを自動で起動するようにする。
