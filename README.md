@@ -270,3 +270,9 @@ docker compose -f compose.verification.yml up
 # 4. 動作確認
 
 ブラウザで パブリック IPv4 DNS にアクセスして、Rails のいつもの画面が出てくることを確認する。
+
+# おまけ
+インスタンス開始時に Docker compose up できるようにする。  
+
+1. リポジトリの boot.sh を /var/lib/cloud/scripts/per-boot/ に設置する。
+2. sudo systemctl enabled docker で docker デーモンを自動で起動するようにする。
