@@ -40,6 +40,7 @@ RailsApp の検証用サーバーを EC2 で作成するためのテンプレー
 
     - 下記ファイルの書き換え
         1. rails/config/puma.rb 
+        2. rails/environments/development.rb
     - YourRailsApp/ に下記ファイルを _rails/ からコピーしてくる
         1. _rails/Dockerfile.verification 
         2. _rails/entrypoint.verification.sh 
@@ -47,7 +48,9 @@ RailsApp の検証用サーバーを EC2 で作成するためのテンプレー
 
 - ( 選択肢 2 ) このリポジトリをテンプレートとして新しいリポジトリを作り、新規 Rails App の開発を開始する
 
-    1. 以下のコマンドを実行する
+    1. 以下のコマンドを実行して RailsApp の開発を開始する
+        rails new のオプションは適宜変更してください。
+        下記は API モードで作成しています。
 
         ```bash
         docker compose run --rm rails rails new . --skip --database=postgresql --api --skip-bundle
