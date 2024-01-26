@@ -149,13 +149,15 @@ sudo usermod -aG docker $USER
     ```
 
 5. EC2 に送るように DockerImage を tar ファイルに圧縮する
-    
+    nginx, Postgresql, rails の DockerImage を tar 形式で save します。
 
     ```
     # 対象の DockerImage の ImageID を特定する
     docker images 
     # 
-    docker tartar
+    docker save <nginx image ID> > nginx.tar
+    docker save <postgresql image ID> > postgres.tar
+    docker save <rails image ID> > rails.tar
     ```
     この方法を使わない場合は、次の「5. EC2 に DockerImage を送信する」をスキップしてください。  
     EC2 の中で build をしてもいいのですが、gem のサイズによっては bundle install をしているときにマシンの CPU リソースが枯渇してしまう場合があります。  
