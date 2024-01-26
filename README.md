@@ -65,6 +65,7 @@ RailsApp の検証用サーバーを EC2 で作成するためのテンプレー
 使用したインスタンスに関する情報は下記のとおりです。  
 nginx + Ruby on Rails + Postgresql なら t2.micro で十分でしたが、ここは適宜変更してください。  
 ストレージに関しても、イメージサイズに応じて変更してください。  
+セキュリティグループは、インバウンドの SSH と HTTP を許可する設定にしてください。
 
 |name|value|
 |-|-|
@@ -109,13 +110,14 @@ sudo usermod -aG docker $USER
 
 ### 2. EC2 で動かすためにローカルで行う作業
 
-1. puma.rb の設定
+1. ruby file の書き換え
     既に用意されている nginx と通信するために設定を変更していく。  
 
     _rails/config/puma.rb を参考に、config/puma.rb を書き換える。  
     ポイントは、Port の設定を無効にすることと、nginx の設定を bind させること  
 
     ```rb
+    # config/puma.rb
     # port 設定を無効にする
     # port ENV.fetch("PORT") { 3000 }
 
@@ -125,6 +127,15 @@ sudo usermod -aG docker $USER
     app_root = File.expand_path("..", __dir__)
     bind "unix://#{app_root}/tmp/sockets/puma.sock"
     ```
+
+    また、ホストの許可設定も追加する
+    ```rb 
+    # confg/environments/development.rb 
+
+    # -------------中略-------------
+    config.hosts << "<ec2 パブリック IPv4 DNS>"
+    ```
+
 
 2. DockerImage の build
 
@@ -149,15 +160,20 @@ sudo usermod -aG docker $USER
     ```
 
 5. EC2 に送るように DockerImage を tar ファイルに変換する
-    nginx, Postgresql, rails の DockerImage を tar 形式で save します。
+    nginx, Postgresql, rails の DockerImage を tar 形式で save します。  
+    その後、EC2 に転送するために gzip 形式での圧縮も行います。
 
     ```
     # 対象の DockerImage の ImageID を特定する
     docker images 
-    # 
+    
+    mkdir docker-images 
+    cd docker-images 
     docker save <nginx image ID> > nginx.tar
     docker save <postgresql image ID> > postgres.tar
     docker save <rails image ID> > rails.tar
+
+    tar zcvf docker-images.tar.gz ./
     ```
     この方法を使わない場合は、次の「5. EC2 に DockerImage を送信する」をスキップしてください。  
     EC2 の中で build をしてもいいのですが、gem のサイズによっては bundle install をしているときにマシンの CPU リソースが枯渇してしまう場合があります。  
@@ -205,37 +221,32 @@ sudo usermod -aG docker $USER
 その場合は、ホスト側から送信する方法や、WSL 側に pem ファイルを移動したうえで権限変更などの方法を試してください。  
 
 ```
-scp -i <pem ファイル> -r ../nginx.tar ubuntu@<ip>:/home/ubuntu/
-scp -i <pem ファイル> -r ../postgres.tar ubuntu@<ip>:/home/ubuntu/
-scp -i <pem ファイル> -r ../rails.tar ubuntu@<ip>:/home/ubuntu/
+scp -i <pem ファイル> -r ../docker-images.tar.gz ubuntu@<ip>:/home/ubuntu/
 scp -i <pem ファイル> -r ./app.tar.gz ubuntu@<ip>:/home/ubuntu/
-
-
-scp -i ../rails-ec2-verification.pem -r ../nginx.tar ubuntu@ec2-35-78-189-82.ap-northeast-1.compute.amazonaws.com:/home/ubuntu/
-scp -i ../rails-ec2-verification.pem -r ../postgres.tar ubuntu@ec2-35-78-189-82.ap-northeast-1.compute.amazonaws.com:/home/ubuntu/
-scp -i ../rails-ec2-verification.pem -r ../rails.tar ubuntu@ec2-35-78-189-82.ap-northeast-1.compute.amazonaws.com:/home/ubuntu/
-scp -i ../rails-ec2-verification.pem -r ./app.tar.gz ubuntu@ec2-35-78-189-82.ap-northeast-1.compute.amazonaws.com:/home/ubuntu/
 ```
-
-8. EC2 に RailsApp を送信する
-```
-tar した方がいい
-```
-
 
 ### 3. EC2 で DockerImage からコンテナ群を立ち上げる
 
-1. DockerImage をロード
+1. DockerImage を解凍、ロード
+
+```
+tar zxvf docker-images.tar.gz
+docker load < docker-images/nginx.tar
+docker load < docker-images/postgres.tar
+docker load < docker-images/rails.tar
+```
 
 2. Rails App を解凍
 
+```
+sudo su -
+cd /
+mv /home/ubuntu/app.tar.gz /usr/src/app.tar.gz
+cd usr/src 
+tar zxvf /usr/src/app.tar.gz
+```
 3. Docker up
 
 ### 4. 動作確認
 
-IP にアクセス
-Rails の画面が表示されたらOK
-
-### 5. インスタンスを開始したとき、自動的にコンテナ群が立ち上がるようにする
-
-
+ブラウザで パブリック IPv4 DNS にアクセスして、Rails のいつもの画面が出てくることを確認する。

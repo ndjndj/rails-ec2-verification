@@ -1,9 +1,10 @@
 version: '3'
 services: 
   web: 
-    build: 
-      context: ./nginx/
-      dockerfile: ./Dockerfile.verification
+    image: rails-ec2-verification-web:latest
+    #build: 
+    #  context: ./nginx/
+    #  dockerfile: ./Dockerfile.verification
     depends_on:
       - rails
     ports:
@@ -25,9 +26,10 @@ services:
       - POSTGRES_PASSWORD=password 
       - POSTGRES_ROOT_PASSWORD=root
   rails: 
-    build: 
-      context: ./rails
-      dockerfile: ./Dockerfile.verification
+    image: rails-ec2-verification-rails:latest
+    #build: 
+    #  context: ./rails
+    #  dockerfile: ./Dockerfile.verification
     command: bash -c "rails s -b '0.0.0.0'"
     volumes:
       - ./rails:/usr/src/app
