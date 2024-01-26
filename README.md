@@ -113,7 +113,18 @@ sudo usermod -aG docker $USER
     既に用意されている nginx と通信するために設定を変更していく。  
 
     _rails/config/puma.rb を参考に、config/puma.rb を書き換える。  
-    ポイントは、Port を閉じることと、Nginx の設定を bind させること  
+    ポイントは、Port の設定を無効にすることと、nginx の設定を bind させること  
+
+    ```rb
+    # port 設定を無効にする
+    # port ENV.fetch("PORT") { 3000 }
+
+    # -------------中略-------------
+
+    # nginx の設定を bind させる
+    app_root = File.expand_path("..", __dir__)
+    bind "unix://#{app_root}/tmp/sockets/puma.sock"
+    ```
 
 2. DockerImage の build
 
@@ -128,8 +139,22 @@ sudo usermod -aG docker $USER
     docker compose -f compose.verification.yml up
     ```
 
- 4. EC2 に送るように DockerImage を tar ファイルに圧縮する
+4. EC2 に送るソース一式を圧縮する
+    任意のディレクトリの圧縮ファイルを作成します。  
+    このファイルを EC2 に送信、EC2 で解凍します。  
+    今回は、rails-ec2-verification/ でリポジトリごと圧縮しています。
+
+    ```bash
+    tar zcvf app.tar.gz ./
     ```
+
+5. EC2 に送るように DockerImage を tar ファイルに圧縮する
+    
+
+    ```
+    # 対象の DockerImage の ImageID を特定する
+    docker images 
+    # 
     docker tartar
     ```
     この方法を使わない場合は、次の「5. EC2 に DockerImage を送信する」をスキップしてください。  
@@ -137,7 +162,7 @@ sudo usermod -aG docker $USER
     なので、転送に時間がかかってしまいますが、DockerImage はローカルで作ってしまうこちらの方法の方が確実です。  
 
 
-5. compose.verification.yml の build 対象を変更する
+6. compose.verification.yml の build 対象を変更する
     
     下記のように、DockerImage から build するように設定を変更します。  
     rails コンテナが肥大するので、rails だけ指定しています。  
@@ -171,9 +196,9 @@ sudo usermod -aG docker $USER
       bin: 
         driver: local
     ```
-6. EC2 に DockerImage を送信する
+7. EC2 に DockerImage を送信する
 
-7. EC2 に RailsApp を送信する
+8. EC2 に RailsApp を送信する
 ```
 tar した方がいい
 ```
